@@ -1,13 +1,17 @@
 # crtool
 Helper tooling for certificate management
 
+Benefits:
+- Static binary builds
+- Does not require any host tools/packages
+
 ## Usage
 
-### `dump`
+### `crtool -t <target [-p port] dump`
 
 Dump certifcates of target server to output. Works with self-signed certificates!
 
-Dump certifates from an https server to stdout
+Dump certifates from an https server to stdout:
 ```sh-session
 crtool -t google.com dump
 ```
