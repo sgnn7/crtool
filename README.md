@@ -5,6 +5,37 @@ Benefits:
 - Static binary builds
 - Does not require any host tools/packages
 
+## Installation
+
+### Linux
+
+Install one of the packages (`.deb` or `.rpm` from the [releases page](https://github.com/sgnn7/crtool/releases))
+
+Or install manually:
+- Replace `${VERSION}` with the appropriate release version (e.g. `0.0.2`)
+- Download the `crtool`:
+```sh-session
+wget -O crtool https://github.com/sgnn7/crtool/releases/download/v${VERSION}/crtool_linux && \
+  chmod +x ./crtool
+```
+
+### macOS
+
+- Replace `${VERSION}` with the appropriate release version (e.g. `0.0.2`)
+- Download the `crtool`:
+```sh-session
+wget -O crtool https://github.com/sgnn7/crtool/releases/download/v${VERSION}/crtool_darwin && \
+  chmod +x ./crtool
+```
+
+### Windows
+
+- Replace `${VERSION}` with the appropriate release version (e.g. `0.0.2`)
+- Download the `crtool`:
+```sh-session
+wget -O crtool.exe https://github.com/sgnn7/crtool/releases/download/v${VERSION}/crtool.exe
+```
+
 ## Usage
 
 ### `crtool -t <target [-p port] [-o file] dump`
