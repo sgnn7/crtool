@@ -6,9 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+### Added
+- Ability to output to a file using `-o` or `-output`
+
 ## [0.1.0] - 2020-05-22
+
 ### Added
 - Initial release
+- Ability to dump certificates to stdout
 
 [Unreleased]: https://github.com/sgnn7/crtool/compare/v0.0.1...HEAD
 [0.0.1]: https://github.com/sgnn7/crtool/releases/tag/v0.0.1

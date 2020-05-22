@@ -7,7 +7,7 @@ Benefits:
 
 ## Usage
 
-### `crtool -t <target [-p port] dump`
+### `crtool -t <target [-p port] [-o file] dump`
 
 Dump certifcates of target server to output. Works with self-signed certificates!
 
@@ -18,10 +18,15 @@ crtool -t google.com dump
 
 Dump certifates from an https server into a file:
 ```sh-session
-crtool -t google.com dump > certs.txt
+crtool -t google.com -o certs.txt dump
 ```
 
 Dump certifates from an https server on a custom port into a file:
 ```sh-session
-crtool -t google.com -p 8443 dump > certs.txt
+crtool -t google.com -p 8443 -o certs.txt dump
+```
+
+Dump certifates from an https server and pass it to another program
+```sh-session
+crtool -t google.com -p 8443 dump | cat
 ```

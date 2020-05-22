@@ -15,13 +15,15 @@ import (
 )
 
 const (
-	targetDefaultValue = ""
-	targetUsage        = "Destination IP or DNS name of the target"
-	portDefaultValue   = "443"
-	portUsage          = "Destination port"
-	debugDefaultValue  = false
-	debugUsage         = "Enables debug messages"
-	versionUsage       = "Show program version"
+	targetDefaultValue     = ""
+	targetUsage            = "Destination IP or DNS name of the target"
+	portDefaultValue       = "443"
+	portUsage              = "Destination port"
+	debugDefaultValue      = false
+	outputFileDefaultValue = ""
+	outputFileUsage        = "Output destination path (defaults to stdout if not specified)"
+	debugUsage             = "Enables debug messages"
+	versionUsage           = "Show program version"
 )
 
 func exitWithError(message string) {
@@ -34,13 +36,16 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	var target, port string
+	var target, port, outputFile string
 
 	flag.StringVar(&target, "target", targetDefaultValue, targetUsage)
 	flag.StringVar(&target, "t", targetDefaultValue, targetUsage+" (shorthand)")
 
 	flag.StringVar(&port, "port", portDefaultValue, portUsage)
 	flag.StringVar(&port, "p", portDefaultValue, portUsage+" (shorthand)")
+
+	flag.StringVar(&outputFile, "output", outputFileDefaultValue, outputFileDefaultValue)
+	flag.StringVar(&outputFile, "o", outputFileDefaultValue, outputFileDefaultValue+" (shorthand)")
 
 	debug := flag.Bool("debug", debugDefaultValue, debugUsage)
 	showVersion := flag.Bool("v", false, versionUsage)
@@ -63,7 +68,8 @@ func main() {
 	}
 
 	cliOptions := cli.Options{
-		Debug: *debug,
+		Debug:      *debug,
+		OutputFile: outputFile,
 	}
 
 	switch action := args[0]; action {

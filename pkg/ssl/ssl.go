@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"log"
 	"net"
 
@@ -54,10 +53,8 @@ func GetServerCertificate(host string, port string, certType certificates.CertTy
 	}
 
 	if options.Debug {
-		log.Printf("Certificates retrieved:")
+		log.Printf("Certificates retrieved")
 	}
 
-	fmt.Printf(buf.String())
-
-	return nil
+	return options.HandleOutput(buf.String())
 }
