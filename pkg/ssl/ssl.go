@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -17,6 +18,14 @@ var InsecureTLSConfig = &tls.Config{
 }
 
 func GetServerCertificate(host string, port string, certType certificates.CertType, options cli.Options) error {
+	if host == "" {
+		return errors.New("host not specified!")
+	}
+
+	if port == "" {
+		return errors.New("port not specified!")
+	}
+
 	target := net.JoinHostPort(host, port)
 
 	if options.Debug {
