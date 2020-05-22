@@ -1,0 +1,70 @@
+project_name: crtool
+
+builds:
+- &crtool-build
+  id: crtool
+  main: ./cmd/crtool.go
+  binary: crtool
+  env:
+  - CGO_ENABLED=0
+  # Use a pure Go networking stack instead of host's. Ensures a truly static build.
+  flags:
+  - -tags=netgo
+  - -a
+  goos:
+  - darwin
+  - windows
+  goarch:
+  - amd64
+
+- <<: *crtool-build
+  id: crtool-linux
+  goos:
+  - linux
+  # Strip debugging info
+  ldflags:
+    - -w
+
+archives:
+  - id: crtool-release-archive
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
+    wrap_in_directory: true
+
+checksum:
+  name_template: 'SHA256SUMS.txt'
+
+dist: ./dist/goreleaser
+
+brews:
+  - description: Certificate helper tool
+    homepage: https://github.com/sgnn7/crtool
+    url_template: https://github.com/sgnn7/crtool/releases/download/v{{.Version}}/crtool_{{.Version}}_{{.Os}}_{{.Arch}}.tar.gz
+    install: |
+      bin.install "crtool"
+    test: |
+      system "#{bin}/crtool", "-version"
+    github:
+      owner: sgnn7
+      name: homebrew-tools
+    skip_upload: true
+
+nfpms:
+  - bindir: /usr/bin
+    description: Certificate helper tool
+    maintainer: Srdjan Grubor <sgnn7@sgnn7.org>
+    formats:
+    - deb
+    - rpm
+    file_name_template: "{{.ProjectName}}_{{.Version}}_{{.Arch}}"
+    homepage: https://github.com/sgnn7/crtool
+    license: "Apache 2.0"
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+release:
+  disable: true
+  prerelease: auto

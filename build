@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+GORELEASER_IMAGE="goreleaser/goreleaser:latest"
+
+flags="--rm-dist --skip-validate"
+if [[ "$SNAPSHOT" == "true" ]]; then
+  flags="${flags} --snapshot"
+fi
+
+
+docker pull "$GORELEASER_IMAGE"
+docker run --rm \
+           -w /crtool \
+           -v "$(pwd):/crtool" \
+           "$GORELEASER_IMAGE" release $flags
