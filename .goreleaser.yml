@@ -28,6 +28,7 @@ builds:
 archives:
   - id: crtool-release-archive
     files:
+      - CHANGELOG.md
       - README.md
       - LICENSE
     format_overrides:
