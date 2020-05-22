@@ -4,26 +4,34 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/pem"
+	"fmt"
 	"log"
 	"net"
 
 	"github.com/sgnn7/crtool/pkg/certificates"
+	"github.com/sgnn7/crtool/pkg/cli"
 )
 
 var InsecureTLSConfig = &tls.Config{
 	InsecureSkipVerify: true,
 }
 
-func GetServerCertificate(host string, port string, certType certificates.CertType) error {
+func GetServerCertificate(host string, port string, certType certificates.CertType, options cli.Options) error {
 	target := net.JoinHostPort(host, port)
-	log.Printf("Dialing '%s'...", target)
+
+	if options.Debug {
+		log.Printf("Dialing '%s'...", target)
+	}
 
 	conn, err := tls.Dial("tcp", target, InsecureTLSConfig)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
-	log.Printf("Connection established")
+
+	if options.Debug {
+		log.Printf("Connection established")
+	}
 
 	var buf bytes.Buffer
 	for _, cert := range conn.ConnectionState().PeerCertificates {
@@ -35,7 +43,12 @@ func GetServerCertificate(host string, port string, certType certificates.CertTy
 			return err
 		}
 	}
-	log.Printf(buf.String())
+
+	if options.Debug {
+		log.Printf("Certificates retrieved:")
+	}
+
+	fmt.Printf(buf.String())
 
 	return nil
 }

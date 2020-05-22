@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/sgnn7/crtool/pkg/certificates"
+	"github.com/sgnn7/crtool/pkg/cli"
 	"github.com/sgnn7/crtool/pkg/ssl"
 )
 
@@ -30,11 +31,11 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	var target string
+	var target, port string
+
 	flag.StringVar(&target, "target", targetDefaultValue, targetUsage)
 	flag.StringVar(&target, "t", targetDefaultValue, targetUsage+" (shorthand)")
 
-	var port string
 	flag.StringVar(&port, "port", portDefaultValue, portUsage)
 	flag.StringVar(&port, "p", portDefaultValue, portUsage+" (shorthand)")
 
@@ -51,9 +52,13 @@ func main() {
 		exitWithError("action not specified")
 	}
 
+	cliOptions := cli.Options{
+		Debug: *debug,
+	}
+
 	switch action := args[0]; action {
 	case "dump":
-		err := ssl.GetServerCertificate(target, port, certificates.CertTypePEM)
+		err := ssl.GetServerCertificate(target, port, certificates.CertTypePEM, cliOptions)
 		if err != nil {
 			exitWithError(err.Error())
 		}
@@ -62,5 +67,4 @@ func main() {
 		flag.PrintDefaults()
 		exitWithError(fmt.Sprintf("action '%s' not supported - only 'dump' is supported", action))
 	}
-
 }
