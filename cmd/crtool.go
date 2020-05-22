@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 
 	"github.com/sgnn7/crtool/pkg/certificates"
 	"github.com/sgnn7/crtool/pkg/cli"
 	"github.com/sgnn7/crtool/pkg/ssl"
+	"github.com/sgnn7/crtool/pkg/version"
 )
 
 const (
@@ -19,6 +21,7 @@ const (
 	portUsage          = "Destination port"
 	debugDefaultValue  = false
 	debugUsage         = "Enables debug messages"
+	versionUsage       = "Show program version"
 )
 
 func exitWithError(message string) {
@@ -40,7 +43,14 @@ func main() {
 	flag.StringVar(&port, "p", portDefaultValue, portUsage+" (shorthand)")
 
 	debug := flag.Bool("debug", debugDefaultValue, debugUsage)
+	showVersion := flag.Bool("v", false, versionUsage)
+
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("%s v%s\n", path.Base(os.Args[0]), version.FullVersionName)
+		return
+	}
 
 	if *debug {
 		log.Println("Starting...")
