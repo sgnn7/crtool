@@ -27,6 +27,9 @@ builds:
 
 archives:
   - id: crtool-release-archive
+    files:
+      - README.md
+      - LICENSE
     format_overrides:
       - goos: windows
         format: zip
