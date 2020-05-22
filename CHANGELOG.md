@@ -6,10 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## [0.0.2] - 2020-05-22
+
 ### Added
 - Ability to output to a file using `-o` or `-output`
 
-## [0.1.0] - 2020-05-22
+## [0.0.1] - 2020-05-22
 
 ### Added
 - Initial release
