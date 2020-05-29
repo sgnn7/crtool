@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Added
+- Initial support for rudimentary cert chain validations
 - Output supports DER (binary) encoding of certificates
 
 ## [0.0.2] - 2020-05-22

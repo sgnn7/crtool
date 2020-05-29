@@ -69,6 +69,7 @@ func main() {
 		log.Println("Starting...")
 	}
 
+	var err error
 	encodingType, err := encoding.NewTypeFromStr(certEncoding)
 	if err != nil {
 		exitWithError(err.Error())
@@ -88,13 +89,16 @@ func main() {
 
 	switch action := args[0]; action {
 	case "dump":
-		err := ssl.GetServerCertificate(target, port, cliOptions.Encoding, cliOptions)
-		if err != nil {
-			exitWithError(err.Error())
-		}
-		return
+		err = ssl.GetServerCert(target, port, cliOptions.Encoding, cliOptions)
+	case "verify":
+		err = ssl.VerifyServerCertChain(target, port, cliOptions)
 	default:
 		flag.PrintDefaults()
-		exitWithError(fmt.Sprintf("action '%s' not supported - only 'dump' is supported", action))
+		exitWithError(fmt.Sprintf("action '%s' not supported - only 'dump' and 'verify' are supported",
+			action))
+	}
+
+	if err != nil {
+		exitWithError(err.Error())
 	}
 }
