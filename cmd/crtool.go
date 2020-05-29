@@ -42,63 +42,88 @@ func main() {
 		outputFile,
 		port,
 		target string
+	var debug bool
 
-	flag.StringVar(&target, "target", targetDefaultValue, targetUsage)
-	flag.StringVar(&target, "t", targetDefaultValue, targetUsage+" (shorthand)")
+	dumpCommand := flag.NewFlagSet("dump", flag.ExitOnError)
+	verifyCommand := flag.NewFlagSet("verify", flag.ExitOnError)
 
-	flag.StringVar(&port, "port", portDefaultValue, portUsage)
-	flag.StringVar(&port, "p", portDefaultValue, portUsage+" (shorthand)")
+	// Dump flags
+	dumpCommand.StringVar(&target, "target", targetDefaultValue, targetUsage)
+	dumpCommand.StringVar(&target, "t", targetDefaultValue, targetUsage+" (shorthand)")
 
-	flag.StringVar(&outputFile, "output", outputFileDefaultValue, outputFileDefaultValue)
-	flag.StringVar(&outputFile, "o", outputFileDefaultValue, outputFileDefaultValue+" (shorthand)")
+	dumpCommand.StringVar(&port, "port", portDefaultValue, portUsage)
+	dumpCommand.StringVar(&port, "p", portDefaultValue, portUsage+" (shorthand)")
 
-	flag.StringVar(&certEncoding, "encoding", encodingDefaultValue, encodingUsage)
-	flag.StringVar(&certEncoding, "e", encodingDefaultValue, encodingUsage+" (shorthand)")
+	dumpCommand.StringVar(&outputFile, "output", outputFileDefaultValue, outputFileUsage)
+	dumpCommand.StringVar(&outputFile, "o", outputFileDefaultValue, outputFileUsage+" (shorthand)")
 
-	debug := flag.Bool("debug", debugDefaultValue, debugUsage)
-	showVersion := flag.Bool("v", false, versionUsage)
+	dumpCommand.StringVar(&certEncoding, "encoding", encodingDefaultValue, encodingUsage)
+	dumpCommand.StringVar(&certEncoding, "e", encodingDefaultValue, encodingUsage+" (shorthand)")
 
-	flag.Parse()
+	dumpCommand.BoolVar(&debug, "debug", debugDefaultValue, debugUsage)
 
-	if *showVersion {
-		fmt.Printf("%s v%s\n", path.Base(os.Args[0]), version.FullVersionName)
-		return
+	// Verify flags
+	verifyCommand.StringVar(&target, "target", targetDefaultValue, targetUsage)
+	verifyCommand.StringVar(&target, "t", targetDefaultValue, targetUsage+" (shorthand)")
+
+	verifyCommand.StringVar(&port, "port", portDefaultValue, portUsage)
+	verifyCommand.StringVar(&port, "p", portDefaultValue, portUsage+" (shorthand)")
+
+	verifyCommand.StringVar(&outputFile, "output", outputFileDefaultValue, outputFileUsage)
+	verifyCommand.StringVar(&outputFile, "o", outputFileDefaultValue, outputFileUsage+" (shorthand)")
+
+	verifyCommand.BoolVar(&debug, "debug", debugDefaultValue, debugUsage)
+
+	if len(os.Args) < 2 {
+		showVersion := flag.Bool("v", false, versionUsage)
+
+		flag.Parse()
+
+		if *showVersion {
+			fmt.Printf("%s v%s\n", path.Base(os.Args[0]), version.FullVersionName)
+			return
+		}
+
+		fmt.Println("verify or dump subcommand is required")
+		os.Exit(1)
 	}
 
-	if *debug {
+	if debug {
 		log.Println("Starting...")
 	}
 
-	var err error
-	encodingType, err := encoding.NewTypeFromStr(certEncoding)
-	if err != nil {
-		exitWithError(err.Error())
-	}
-
-	args := flag.Args()
-	if len(args) < 1 {
-		flag.PrintDefaults()
-		exitWithError("action not specified")
-	}
-
-	cliOptions := cli.Options{
-		Debug:      *debug,
-		Encoding:   encodingType,
-		OutputFile: outputFile,
-	}
-
-	switch action := args[0]; action {
+	switch action := os.Args[1]; action {
 	case "dump":
-		err = ssl.GetServerCert(target, port, cliOptions.Encoding, cliOptions)
+		dumpCommand.Parse(os.Args[2:])
+		cliOptions := cli.Options{
+			Debug:      debug,
+			OutputFile: outputFile,
+		}
+
+		encodingType, err := encoding.NewTypeFromStr(certEncoding)
+		if err != nil {
+			exitWithError(err.Error())
+		}
+
+		err = ssl.GetServerCert(target, port, encodingType, cliOptions)
+		if err != nil {
+			exitWithError(err.Error())
+		}
 	case "verify":
-		err = ssl.VerifyServerCertChain(target, port, cliOptions)
+		verifyCommand.Parse(os.Args[2:])
+		cliOptions := cli.Options{
+			Debug:      debug,
+			OutputFile: outputFile,
+		}
+
+		err := ssl.VerifyServerCertChain(target, port, cliOptions)
+		if err != nil {
+			exitWithError(err.Error())
+		}
 	default:
 		flag.PrintDefaults()
 		exitWithError(fmt.Sprintf("action '%s' not supported - only 'dump' and 'verify' are supported",
 			action))
 	}
 
-	if err != nil {
-		exitWithError(err.Error())
-	}
 }

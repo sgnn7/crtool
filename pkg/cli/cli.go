@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-
-	"github.com/sgnn7/crtool/pkg/encoding"
 )
 
 type Options struct {
 	Debug      bool
-	Encoding   encoding.EncodingType
 	OutputFile string
 }
 

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Initial support for rudimentary cert chain validations
 - Output supports DER (binary) encoding of certificates
+- Made CLI more intuitive to use - made action be the first arg
 
 ## [0.0.2] - 2020-05-22
 

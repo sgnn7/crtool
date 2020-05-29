@@ -38,31 +38,54 @@ wget -O crtool.exe https://github.com/sgnn7/crtool/releases/download/v${VERSION}
 
 ## Usage
 
-### `crtool -t <target> [-p port] [-o file] [-e < pem | der >] dump`
+- [`crtool verify`](#crtool-verify)
+- [`crtool dump`](#crtool-dump)
+
+### `crtool verify`
+
+Verify certifcates of target server
+
+```sh-session
+crtool verify -t <target> [-p port]
+```
+
+Currently this verifies per connection:
+- Hostname
+- System's CA certificate chain
+
+Currently this verifies per-cert fields:
+- NotBefore
+- NotAfter
+
+### `crtool dump`
 
 Dump certifcates of target server to output. Works with self-signed certificates!
 
+```sh-session
+crtool dump -t <target> [-p port] [-o file] [-e < pem | der >]`
+```
+
 Dump certifates from an https server to stdout in PEM encoding:
 ```sh-session
-crtool -t google.com dump
+crtool dump -t google.com
 ```
 
 Dump certifates from an https server into a file:
 ```sh-session
-crtool -t google.com -o certs.txt dump
+crtool dump -t google.com -o certs.txt
 ```
 
 Dump leaf certifate from an https server into a file in DER encoding:
 ```sh-session
-crtool -t google.com -o cert.der -e der dump
+crtool dump -t google.com -o cert.der -e der
 ```
 
 Dump certifates from an https server on a custom port into a file:
 ```sh-session
-crtool -t google.com -p 8443 -o certs.txt dump
+crtool dump -t google.com -p 8443 -o certs.txt
 ```
 
 Dump certificates from an https server and pass it to another program
 ```sh-session
-crtool -t google.com -p 8443 dump | cat
+crtool dump -t google.com | cat
 ```
