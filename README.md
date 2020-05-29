@@ -12,7 +12,7 @@ Benefits:
 Install one of the packages (`.deb` or `.rpm` from the [releases page](https://github.com/sgnn7/crtool/releases))
 
 Or install manually:
-- Replace `${VERSION}` with the appropriate release version (e.g. `0.0.2`)
+- Replace `${VERSION}` with the appropriate release version (e.g. `0.0.3`)
 - Download the `crtool`:
 ```sh-session
 wget -O crtool https://github.com/sgnn7/crtool/releases/download/v${VERSION}/crtool_linux && \
@@ -21,7 +21,7 @@ wget -O crtool https://github.com/sgnn7/crtool/releases/download/v${VERSION}/crt
 
 ### macOS
 
-- Replace `${VERSION}` with the appropriate release version (e.g. `0.0.2`)
+- Replace `${VERSION}` with the appropriate release version (e.g. `0.0.3`)
 - Download the `crtool`:
 ```sh-session
 wget -O crtool https://github.com/sgnn7/crtool/releases/download/v${VERSION}/crtool_darwin && \
@@ -30,7 +30,7 @@ wget -O crtool https://github.com/sgnn7/crtool/releases/download/v${VERSION}/crt
 
 ### Windows
 
-- Replace `${VERSION}` with the appropriate release version (e.g. `0.0.2`)
+- Replace `${VERSION}` with the appropriate release version (e.g. `0.0.3`)
 - Download the `crtool`:
 ```sh-session
 wget -O crtool.exe https://github.com/sgnn7/crtool/releases/download/v${VERSION}/crtool.exe
