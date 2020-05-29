@@ -56,7 +56,19 @@ func ValidateIssuer(issuer pkix.Name) (ValidationResult, error) {
 
 func ValidateNotBefore(notBefore time.Time) (ValidationResult, error) {
 	if time.Now().Before(notBefore) {
-		return ValidationResultFail, nil
+		failure := ValidationResultFail
+		failure.Message = "notBefore: current datetime is before cert validity start time"
+		return failure, nil
+	}
+
+	return ValidationResultPass, nil
+}
+
+func ValidateNotAfter(notAfter time.Time) (ValidationResult, error) {
+	if time.Now().After(notAfter) {
+		failure := ValidationResultFail
+		failure.Message = "notAfter: current datetime is after cert validity end time"
+		return failure, nil
 	}
 
 	return ValidationResultPass, nil
@@ -65,8 +77,9 @@ func ValidateNotBefore(notBefore time.Time) (ValidationResult, error) {
 func ValidateHostname(hostname string, hostCert *x509.Certificate) (ValidationResult, error) {
 	hostnameVerificationErr := hostCert.VerifyHostname(hostname)
 	if hostnameVerificationErr != nil {
-		// TODO: Show error
-		return ValidationResultFail, nil
+		failure := ValidationResultFail
+		failure.Message = hostnameVerificationErr.Error()
+		return failure, nil
 	}
 
 	return ValidationResultPass, nil
@@ -75,8 +88,9 @@ func ValidateHostname(hostname string, hostCert *x509.Certificate) (ValidationRe
 func ValidateChain(certs []*x509.Certificate) (ValidationResult, error) {
 	roots, err := x509.SystemCertPool()
 	if err != nil {
-		// TODO: Show error
-		return ValidationResultFail, nil
+		failure := ValidationResultFail
+		failure.Message = err.Error()
+		return failure, nil
 	}
 
 	intermediateCerts := certs[1:]
@@ -92,16 +106,9 @@ func ValidateChain(certs []*x509.Certificate) (ValidationResult, error) {
 
 	leafCert := certs[0]
 	if _, err := leafCert.Verify(opts); err != nil {
-		// TODO: Show error
-		return ValidationResultFail, nil
-	}
-
-	return ValidationResultPass, nil
-}
-
-func ValidateNotAfter(notAfter time.Time) (ValidationResult, error) {
-	if time.Now().After(notAfter) {
-		return ValidationResultFail, nil
+		failure := ValidationResultFail
+		failure.Message = err.Error()
+		return failure, nil
 	}
 
 	return ValidationResultPass, nil

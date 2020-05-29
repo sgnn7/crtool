@@ -132,11 +132,19 @@ func VerifyServerCertChain(host string, port string, options cli.Options) error 
 		}
 	}
 
+	success := true
 	for _, validation := range validations {
 		if !validation.Success {
-			log.Println()
-			return errors.New("fetched certificate chain failed validation")
+			if success {
+				log.Println()
+			}
+			success = false
+			log.Printf("FAIL: %s", validation.Message)
 		}
+	}
+
+	if !success {
+		return errors.New("fetched certificate chain failed validation")
 	}
 
 	return nil
