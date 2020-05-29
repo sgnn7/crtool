@@ -85,14 +85,18 @@ func VerifyServerCertChain(host string, port string, options cli.Options) error 
 		log.Printf("Connection established")
 	}
 
+	validations := []validation.ValidationResult{}
+
 	numOfCerts := len(conn.ConnectionState().PeerCertificates)
 
 	// Global chain verifications
 	leafCert := conn.ConnectionState().PeerCertificates[0]
 	hostnameValidation, _ := validation.ValidateHostname(host, leafCert)
+	validations = append(validations, hostnameValidation)
 	log.Printf("%s %-23s %s", hostnameValidation, "Hostname:", host)
 
 	certChainValidation, _ := validation.ValidateChain(conn.ConnectionState().PeerCertificates)
+	validations = append(validations, certChainValidation)
 	log.Printf("%s %-23s %s", certChainValidation, "Chain Validity:", "System CA store")
 	log.Println()
 
@@ -102,20 +106,25 @@ func VerifyServerCertChain(host string, port string, options cli.Options) error 
 		log.Println()
 
 		subjValidation, _ := validation.ValidateSubject(cert.Subject)
+		validations = append(validations, subjValidation)
 		log.Printf("%s %-23s '%s'", subjValidation, "Subject:", cert.Subject)
 
 		notBeforeValidation, _ := validation.ValidateNotBefore(cert.NotBefore)
+		validations = append(validations, notBeforeValidation)
 		log.Printf("%s %-23s %s", notBeforeValidation, "Validity (NotBefore):",
 			cert.NotBefore.Format(time.RFC3339))
 
 		notAfterValidation, _ := validation.ValidateNotAfter(cert.NotAfter)
+		validations = append(validations, notAfterValidation)
 		log.Printf("%s %-23s %s", notAfterValidation, "Validity (NotAfter):",
 			cert.NotAfter.Format(time.RFC3339))
 
 		issuerValidation, _ := validation.ValidateIssuer(cert.Issuer)
+		validations = append(validations, issuerValidation)
 		log.Printf("%s %-23s '%s'", issuerValidation, "Issuer:", cert.Issuer)
 
 		caValidation, _ := validation.ValidateCA(cert.IsCA)
+		validations = append(validations, caValidation)
 		log.Printf("%s %-23s %v", caValidation, "CA Cert:", cert.IsCA)
 
 		if idx < numOfCerts-1 {
@@ -123,8 +132,11 @@ func VerifyServerCertChain(host string, port string, options cli.Options) error 
 		}
 	}
 
-	if options.Debug {
-		log.Printf("Certificates retrieved")
+	for _, validation := range validations {
+		if !validation.Success {
+			log.Println()
+			return errors.New("fetched certificate chain failed validation")
+		}
 	}
 
 	return nil
