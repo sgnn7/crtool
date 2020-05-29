@@ -8,21 +8,23 @@ import (
 	"os"
 	"path"
 
-	"github.com/sgnn7/crtool/pkg/certificates"
 	"github.com/sgnn7/crtool/pkg/cli"
+	"github.com/sgnn7/crtool/pkg/encoding"
 	"github.com/sgnn7/crtool/pkg/ssl"
 	"github.com/sgnn7/crtool/pkg/version"
 )
 
 const (
-	targetDefaultValue     = ""
-	targetUsage            = "Destination IP or DNS name of the target"
-	portDefaultValue       = "443"
-	portUsage              = "Destination port"
 	debugDefaultValue      = false
+	debugUsage             = "Enables debug messages"
+	encodingDefaultValue   = "pem"
+	encodingUsage          = "Select type of output encoding ('pem' or 'der')"
 	outputFileDefaultValue = ""
 	outputFileUsage        = "Output destination path (defaults to stdout if not specified)"
-	debugUsage             = "Enables debug messages"
+	portDefaultValue       = "443"
+	portUsage              = "Destination port"
+	targetDefaultValue     = ""
+	targetUsage            = "Destination IP or DNS name of the target"
 	versionUsage           = "Show program version"
 )
 
@@ -36,7 +38,10 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	var target, port, outputFile string
+	var certEncoding,
+		outputFile,
+		port,
+		target string
 
 	flag.StringVar(&target, "target", targetDefaultValue, targetUsage)
 	flag.StringVar(&target, "t", targetDefaultValue, targetUsage+" (shorthand)")
@@ -46,6 +51,9 @@ func main() {
 
 	flag.StringVar(&outputFile, "output", outputFileDefaultValue, outputFileDefaultValue)
 	flag.StringVar(&outputFile, "o", outputFileDefaultValue, outputFileDefaultValue+" (shorthand)")
+
+	flag.StringVar(&certEncoding, "encoding", encodingDefaultValue, encodingUsage)
+	flag.StringVar(&certEncoding, "e", encodingDefaultValue, encodingUsage+" (shorthand)")
 
 	debug := flag.Bool("debug", debugDefaultValue, debugUsage)
 	showVersion := flag.Bool("v", false, versionUsage)
@@ -61,6 +69,11 @@ func main() {
 		log.Println("Starting...")
 	}
 
+	encodingType, err := encoding.NewTypeFromStr(certEncoding)
+	if err != nil {
+		exitWithError(err.Error())
+	}
+
 	args := flag.Args()
 	if len(args) < 1 {
 		flag.PrintDefaults()
@@ -69,12 +82,13 @@ func main() {
 
 	cliOptions := cli.Options{
 		Debug:      *debug,
+		Encoding:   encodingType,
 		OutputFile: outputFile,
 	}
 
 	switch action := args[0]; action {
 	case "dump":
-		err := ssl.GetServerCertificate(target, port, certificates.CertTypePEM, cliOptions)
+		err := ssl.GetServerCertificate(target, port, cliOptions.Encoding, cliOptions)
 		if err != nil {
 			exitWithError(err.Error())
 		}

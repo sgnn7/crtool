@@ -38,11 +38,11 @@ wget -O crtool.exe https://github.com/sgnn7/crtool/releases/download/v${VERSION}
 
 ## Usage
 
-### `crtool -t <target [-p port] [-o file] dump`
+### `crtool -t <target> [-p port] [-o file] [-e < pem | der >] dump`
 
 Dump certifcates of target server to output. Works with self-signed certificates!
 
-Dump certifates from an https server to stdout:
+Dump certifates from an https server to stdout in PEM encoding:
 ```sh-session
 crtool -t google.com dump
 ```
@@ -52,12 +52,17 @@ Dump certifates from an https server into a file:
 crtool -t google.com -o certs.txt dump
 ```
 
+Dump leaf certifate from an https server into a file in DER encoding:
+```sh-session
+crtool -t google.com -o cert.der -e der dump
+```
+
 Dump certifates from an https server on a custom port into a file:
 ```sh-session
 crtool -t google.com -p 8443 -o certs.txt dump
 ```
 
-Dump certifates from an https server and pass it to another program
+Dump certificates from an https server and pass it to another program
 ```sh-session
 crtool -t google.com -p 8443 dump | cat
 ```

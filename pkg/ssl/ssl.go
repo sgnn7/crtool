@@ -1,22 +1,20 @@
 package ssl
 
 import (
-	"bytes"
 	"crypto/tls"
-	"encoding/pem"
 	"errors"
 	"log"
 	"net"
 
-	"github.com/sgnn7/crtool/pkg/certificates"
 	"github.com/sgnn7/crtool/pkg/cli"
+	"github.com/sgnn7/crtool/pkg/encoding"
 )
 
 var InsecureTLSConfig = &tls.Config{
 	InsecureSkipVerify: true,
 }
 
-func GetServerCertificate(host string, port string, certType certificates.CertType, options cli.Options) error {
+func GetServerCertificate(host string, port string, encType encoding.EncodingType, options cli.Options) error {
 	if host == "" {
 		return errors.New("host not specified!")
 	}
@@ -41,20 +39,19 @@ func GetServerCertificate(host string, port string, certType certificates.CertTy
 		log.Printf("Connection established")
 	}
 
-	var buf bytes.Buffer
-	for _, cert := range conn.ConnectionState().PeerCertificates {
-		err := pem.Encode(&buf, &pem.Block{
-			Bytes: cert.Raw,
-			Type:  "CERTIFICATE",
-		})
-		if err != nil {
-			return err
-		}
+	rawCerts := make([][]byte, len(conn.ConnectionState().PeerCertificates))
+	for idx, cert := range conn.ConnectionState().PeerCertificates {
+		rawCerts[idx] = cert.Raw
+	}
+
+	encData, err := encoding.EncodeCerts(rawCerts, encType)
+	if err != nil {
+		return err
 	}
 
 	if options.Debug {
 		log.Printf("Certificates retrieved")
 	}
 
-	return options.HandleOutput(buf.String())
+	return options.HandleOutput(string(encData))
 }
