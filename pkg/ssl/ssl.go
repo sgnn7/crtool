@@ -5,6 +5,8 @@ import (
 	"errors"
 	"log"
 	"net"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/sgnn7/crtool/pkg/certificates/validation"
@@ -16,20 +18,31 @@ var InsecureTLSConfig = &tls.Config{
 	InsecureSkipVerify: true,
 }
 
-func composeTargetStr(host string, port string) (string, error) {
+func composeTargetStr(host string, port string) (string, string, error) {
 	if host == "" {
-		return "", errors.New("host not specified!")
+		return "", "", errors.New("host not specified!")
 	}
 
 	if port == "" {
-		return "", errors.New("port not specified!")
+		return "", "", errors.New("port not specified!")
 	}
 
-	return net.JoinHostPort(host, port), nil
+	// Try to strip off the schema/path/port if someone used a URL
+	url, err := url.ParseRequestURI(host)
+	if err == nil {
+		hostPort := strings.Split(url.Host, ":")
+		if len(hostPort) < 2 {
+			hostPort = append(hostPort, "443")
+		}
+
+		return hostPort[0], hostPort[0] + ":" + hostPort[1], nil
+	}
+
+	return host, net.JoinHostPort(host, port), nil
 }
 
 func GetServerCert(host string, port string, encType encoding.EncodingType, options cli.Options) error {
-	target, err := composeTargetStr(host, port)
+	host, target, err := composeTargetStr(host, port)
 	if err != nil {
 		return err
 	}
@@ -66,7 +79,7 @@ func GetServerCert(host string, port string, encType encoding.EncodingType, opti
 }
 
 func VerifyServerCertChain(host string, port string, options cli.Options) error {
-	target, err := composeTargetStr(host, port)
+	host, target, err := composeTargetStr(host, port)
 	if err != nil {
 		return err
 	}

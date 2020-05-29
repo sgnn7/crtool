@@ -57,6 +57,11 @@ Currently this verifies per-cert fields:
 - NotBefore
 - NotAfter
 
+Example:
+```sh-session
+crtool verify -t expired.badssl.com
+```
+
 ### `crtool dump`
 
 Dump certifcates of target server to output. Works with self-signed certificates!
