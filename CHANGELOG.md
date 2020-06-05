@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## [0.0.4] - 2020-06-05
+
 ### Added
 - Issuer chain verification
 - Ability to use `file://` URLs as a target for `verify` and `dump`
@@ -29,7 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Initial release
 - Ability to dump certificates to stdout
 
-[Unreleased]: https://github.com/sgnn7/crtool/compare/v0.0.3...HEAD
+[Unreleased]: https://github.com/sgnn7/crtool/compare/v0.0.4...HEAD
+[0.0.4]: https://github.com/sgnn7/crtool/releases/tag/v0.0.4
 [0.0.3]: https://github.com/sgnn7/crtool/releases/tag/v0.0.3
 [0.0.2]: https://github.com/sgnn7/crtool/releases/tag/v0.0.2
 [0.0.1]: https://github.com/sgnn7/crtool/releases/tag/v0.0.1
