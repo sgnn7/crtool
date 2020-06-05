@@ -67,7 +67,7 @@ crtool verify -t expired.badssl.com
 Dump certifcates of target server to output. Works with self-signed certificates!
 
 ```sh-session
-crtool dump -t <target> [-p port] [-o file] [-e < pem | der >]`
+crtool dump -t <target> [-p port] [-o file] [-e < pem | der >]
 ```
 
 Dump certifates from an https server to stdout in PEM encoding:
