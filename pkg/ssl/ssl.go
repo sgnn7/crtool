@@ -8,14 +8,24 @@ import (
 
 	certProviders "github.com/sgnn7/crtool/pkg/certificates/providers"
 	"github.com/sgnn7/crtool/pkg/certificates/validation"
-	"github.com/sgnn7/crtool/pkg/cli"
 	"github.com/sgnn7/crtool/pkg/encoding"
 )
 
-func GetServerCert(target string, port string, encType encoding.EncodingType, options cli.Options) error {
+type Options struct {
+	Debug      bool
+	OutputFile string
+}
+
+func GetServerCert(
+	target string,
+	port string,
+	encType encoding.EncodingType,
+	options Options,
+) (string, error) {
+
 	certs, _, err := certProviders.GetCertificates(target, port, options.Debug)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	rawCerts := make([][]byte, len(certs))
@@ -25,20 +35,20 @@ func GetServerCert(target string, port string, encType encoding.EncodingType, op
 
 	encData, err := encoding.EncodeCerts(rawCerts, encType)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if options.Debug {
 		log.Printf("Certificates retrieved")
 	}
 
-	return options.HandleOutput(string(encData))
+	return string(encData), nil
 }
 
-func VerifyServerCertChain(target string, port string, options cli.Options) error {
+func VerifyServerCertChain(target string, port string, options Options) (string, error) {
 	certs, host, err := certProviders.GetCertificates(target, port, options.Debug)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	validations := []validation.ValidationResult{}
@@ -125,8 +135,8 @@ func VerifyServerCertChain(target string, port string, options cli.Options) erro
 	}
 
 	if !success {
-		return errors.New("fetched certificate chain failed validation")
+		return "", errors.New("fetched certificate chain failed validation")
 	}
 
-	return nil
+	return "", nil
 }
