@@ -91,6 +91,11 @@ func VerifyServerCertChain(target string, port string, options cli.Options) erro
 		validations = append(validations, caValidation)
 		log.Printf("%s %-23s %v", caValidation, "CA Cert:", cert.IsCA)
 
+		crlRevocationsValidation, _ := validation.ValidateCRLRevocation(*cert, cert.CRLDistributionPoints)
+		validations = append(validations, crlRevocationsValidation)
+		log.Printf("%s %-23s %s", crlRevocationsValidation, "CRL Revocations:", cert.CRLDistributionPoints)
+		log.Println()
+
 		if idx < numOfCerts-1 {
 			log.Println()
 		}

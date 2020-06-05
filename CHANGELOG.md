@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Validation now checks basic constraints of certs
+- Validation now checks CRL revocation lists
 
 ## [0.0.4] - 2020-06-05
 

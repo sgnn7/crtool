@@ -1,9 +1,11 @@
 package validation
 
 import (
+	"bytes"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"fmt"
+	"net/http"
 	"time"
 )
 
@@ -24,6 +26,9 @@ const (
 
 	// https://tools.ietf.org/html/rfc5280#section-4.2.1.9
 	ValidationTypeBasicContstraint ValidationType = 5
+
+	// https://tools.ietf.org/html/rfc5280#section-5.1.2.6
+	ValidationTypeRevocationList ValidationType = 6
 )
 
 var ValidationResultPass = ValidationResult{
@@ -156,6 +161,47 @@ func ValidateChain(certs []*x509.Certificate) (ValidationResult, error) {
 		failure := ValidationResultFail
 		failure.Message = err.Error()
 		return failure, nil
+	}
+
+	return ValidationResultPass, nil
+}
+
+func downloadFile(url string) ([]byte, error) {
+	response, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(response.Body)
+
+	return buf.Bytes(), nil
+}
+
+func ValidateCRLRevocation(cert x509.Certificate, crlEndpoints []string) (ValidationResult, error) {
+	for _, crlEndpoint := range crlEndpoints {
+		crlListBuf, err := downloadFile(crlEndpoint)
+		if err != nil {
+			failure := ValidationResultFail
+			failure.Message = err.Error()
+			return failure, nil
+		}
+
+		crlList, err := x509.ParseCRL(crlListBuf)
+		if err != nil {
+			failure := ValidationResultFail
+			failure.Message = err.Error()
+			return failure, nil
+		}
+
+		for _, revokedCert := range crlList.TBSCertList.RevokedCertificates {
+			if cert.SerialNumber.Cmp(revokedCert.SerialNumber) == 0 {
+				failure := ValidationResultFail
+				failure.Message = fmt.Sprintf("CRL: cert '%s' was revoked via CRL", cert.Subject)
+				return failure, nil
+			}
+		}
 	}
 
 	return ValidationResultPass, nil
