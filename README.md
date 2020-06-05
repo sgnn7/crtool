@@ -1,7 +1,15 @@
 # crtool
+
 Helper tooling for certificate management
 
-Benefits:
+## Features
+
+- Simple saving of remote server certificate to a file (PEM and/or DER)
+- Simple in-depth verification of remote and/or local server certificates
+- Transcoding of certificates from PEM to DER
+
+## Benefits
+
 - Static binary builds
 - Does not require any host tools/packages
 
@@ -122,3 +130,7 @@ Dump certificates from an https server and pass it to another program
 ```sh-session
 crtool dump -t google.com | cat
 ```
+
+## Contributors
+
+ - Srdjan Grubor ([@sgnn7](https://github.com/sgnn7))
