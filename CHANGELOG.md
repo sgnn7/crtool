@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Issuer chain verification
+- Ability to use `file://` URLs as a target for `verify` and `dump`
 
 ## [0.0.3] - 2020-05-29
 

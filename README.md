@@ -49,17 +49,37 @@ Verify certifcates of target server
 crtool verify -t <target> [-p port]
 ```
 
+_Note: This command supports verification of file-provided PEM certs too if you
+specify the `file://` schema:_
+```sh-session
+crtool verify -t file://path/to/file.crt
+```
+
 Currently this verifies per connection:
 - Hostname
 - System's CA certificate chain
+- Issuer's CN
+- Issuer's Signature
 
 Currently this verifies per-cert fields:
 - NotBefore
 - NotAfter
 
-Example:
+#### Examples
+
+Verify an expired cert
 ```sh-session
 crtool verify -t expired.badssl.com
+```
+
+Verify a valid cert
+```sh-session
+crtool verify -t expired.badssl.com
+```
+
+Verify certificate(s) in a file
+```sh-session
+crtool verify -t file://server.crt
 ```
 
 ### `crtool dump`
@@ -69,6 +89,14 @@ Dump certifcates of target server to output. Works with self-signed certificates
 ```sh-session
 crtool dump -t <target> [-p port] [-o file] [-e < pem | der >]
 ```
+
+_Note: This command supports using file-provided PEM-encoded certs if you specify the
+`file://` schema which is useful in transcoding._
+```sh-session
+crtool dump -t file://server.pem -o server.der -e der
+```
+
+#### Examples
 
 Dump certifates from an https server to stdout in PEM encoding:
 ```sh-session

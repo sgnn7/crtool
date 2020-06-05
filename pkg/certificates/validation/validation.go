@@ -61,7 +61,7 @@ func ValidateIssuer(cert *x509.Certificate, issuer *x509.Certificate) (Validatio
 	// Check CN
 	if cert.Issuer.String() != issuer.Subject.String() {
 		failure := ValidationResultFail
-		failure.Message = fmt.Sprintf("issuer: issuer of '%s' is not the next cert in chain '%s' (was '%s')",
+		failure.Message = fmt.Sprintf("issuer: issuer of '%s' is not correct (expected: '%s', actual: '%s')",
 			cert.Subject,
 			cert.Issuer,
 			issuer.Subject)
