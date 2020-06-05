@@ -1,69 +1,25 @@
 package ssl
 
 import (
-	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"log"
-	"net"
-	"net/url"
-	"strings"
 	"time"
 
+	certProviders "github.com/sgnn7/crtool/pkg/certificates/providers"
 	"github.com/sgnn7/crtool/pkg/certificates/validation"
 	"github.com/sgnn7/crtool/pkg/cli"
 	"github.com/sgnn7/crtool/pkg/encoding"
 )
 
-var InsecureTLSConfig = &tls.Config{
-	InsecureSkipVerify: true,
-}
-
-func composeTargetStr(host string, port string) (string, string, error) {
-	if host == "" {
-		return "", "", errors.New("host not specified!")
-	}
-
-	if port == "" {
-		return "", "", errors.New("port not specified!")
-	}
-
-	// Try to strip off the schema/path/port if someone used a URL
-	url, err := url.ParseRequestURI(host)
-	if err == nil {
-		hostPort := strings.Split(url.Host, ":")
-		if len(hostPort) < 2 {
-			hostPort = append(hostPort, "443")
-		}
-
-		return hostPort[0], hostPort[0] + ":" + hostPort[1], nil
-	}
-
-	return host, net.JoinHostPort(host, port), nil
-}
-
-func GetServerCert(host string, port string, encType encoding.EncodingType, options cli.Options) error {
-	host, target, err := composeTargetStr(host, port)
+func GetServerCert(target string, port string, encType encoding.EncodingType, options cli.Options) error {
+	certs, _, err := certProviders.GetTLSCertificates(target, port, options.Debug)
 	if err != nil {
 		return err
 	}
 
-	if options.Debug {
-		log.Printf("Dialing '%s'...", target)
-	}
-
-	conn, err := tls.Dial("tcp", target, InsecureTLSConfig)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	if options.Debug {
-		log.Printf("Connection established")
-	}
-
-	rawCerts := make([][]byte, len(conn.ConnectionState().PeerCertificates))
-	for idx, cert := range conn.ConnectionState().PeerCertificates {
+	rawCerts := make([][]byte, len(certs))
+	for idx, cert := range certs {
 		rawCerts[idx] = cert.Raw
 	}
 
@@ -79,43 +35,28 @@ func GetServerCert(host string, port string, encType encoding.EncodingType, opti
 	return options.HandleOutput(string(encData))
 }
 
-func VerifyServerCertChain(host string, port string, options cli.Options) error {
-	host, target, err := composeTargetStr(host, port)
+func VerifyServerCertChain(target string, port string, options cli.Options) error {
+	certs, host, err := certProviders.GetTLSCertificates(target, port, options.Debug)
 	if err != nil {
 		return err
-	}
-
-	if options.Debug {
-		log.Printf("Dialing '%s'...", target)
-	}
-
-	conn, err := tls.Dial("tcp", target, InsecureTLSConfig)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	if options.Debug {
-		log.Printf("Connection established")
 	}
 
 	validations := []validation.ValidationResult{}
-
-	numOfCerts := len(conn.ConnectionState().PeerCertificates)
+	numOfCerts := len(certs)
 
 	// Global chain verifications
-	leafCert := conn.ConnectionState().PeerCertificates[0]
+	leafCert := certs[0]
 	hostnameValidation, _ := validation.ValidateHostname(host, leafCert)
 	validations = append(validations, hostnameValidation)
 	log.Printf("%s %-23s %s", hostnameValidation, "Hostname:", host)
 
-	certChainValidation, _ := validation.ValidateChain(conn.ConnectionState().PeerCertificates)
+	certChainValidation, _ := validation.ValidateChain(certs)
 	validations = append(validations, certChainValidation)
 	log.Printf("%s %-23s %s", certChainValidation, "Chain Validity:", "System CA store")
 	log.Println()
 
 	// Inidividual cert validations
-	for idx, cert := range conn.ConnectionState().PeerCertificates {
+	for idx, cert := range certs {
 		log.Printf("Certificate: %d/%d", idx+1, numOfCerts)
 		log.Println()
 
@@ -135,7 +76,7 @@ func VerifyServerCertChain(host string, port string, options cli.Options) error 
 
 		var issuerCert *x509.Certificate
 		if idx < numOfCerts-1 {
-			issuerCert = conn.ConnectionState().PeerCertificates[idx+1]
+			issuerCert = certs[idx+1]
 		}
 		issuerValidation, _ := validation.ValidateIssuer(cert, issuerCert)
 		validations = append(validations, issuerValidation)
