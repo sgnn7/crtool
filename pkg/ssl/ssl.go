@@ -2,6 +2,7 @@ package ssl
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"log"
 	"net"
@@ -132,7 +133,11 @@ func VerifyServerCertChain(host string, port string, options cli.Options) error 
 		log.Printf("%s %-23s %s", notAfterValidation, "Validity (NotAfter):",
 			cert.NotAfter.Format(time.RFC3339))
 
-		issuerValidation, _ := validation.ValidateIssuer(cert.Issuer)
+		var issuerCert *x509.Certificate
+		if idx < numOfCerts-1 {
+			issuerCert = conn.ConnectionState().PeerCertificates[idx+1]
+		}
+		issuerValidation, _ := validation.ValidateIssuer(cert, issuerCert)
 		validations = append(validations, issuerValidation)
 		log.Printf("%s %-23s '%s'", issuerValidation, "Issuer:", cert.Issuer)
 

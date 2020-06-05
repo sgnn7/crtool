@@ -50,8 +50,35 @@ func ValidateCA(isCA bool) (ValidationResult, error) {
 	return ValidationResultSkip, nil
 }
 
-func ValidateIssuer(issuer pkix.Name) (ValidationResult, error) {
-	return ValidationResultSkip, nil
+func ValidateIssuer(cert *x509.Certificate, issuer *x509.Certificate) (ValidationResult, error) {
+	// If it's the last cert, it's self-signed or we need to continue on with the third-party chain
+	// TODO: Implement the correct chain bubbling for self-signed CAs
+	// TODO: Implement the correct chain bubbling for certs with separate CA chains
+	if issuer == nil {
+		return ValidationResultSkip, nil
+	}
+
+	// Check CN
+	if cert.Issuer.String() != issuer.Subject.String() {
+		failure := ValidationResultFail
+		failure.Message = fmt.Sprintf("issuer: issuer of '%s' is not the next cert in chain '%s' (was '%s')",
+			cert.Subject,
+			cert.Issuer,
+			issuer.Subject)
+		return failure, nil
+	}
+
+	// Then check the signature
+	if err := cert.CheckSignatureFrom(issuer); err != nil {
+		failure := ValidationResultFail
+		failure.Message = fmt.Sprintf("issuer: signature on '%s' is not a valid signature from '%s' (%s)",
+			cert.Subject,
+			issuer.Subject,
+			err.Error())
+		return failure, nil
+	}
+
+	return ValidationResultPass, nil
 }
 
 func ValidateNotBefore(notBefore time.Time) (ValidationResult, error) {
