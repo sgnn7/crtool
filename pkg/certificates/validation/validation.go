@@ -2,11 +2,16 @@ package validation
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
+
+	"golang.org/x/crypto/ocsp"
 )
 
 type ValidationType int
@@ -28,7 +33,10 @@ const (
 	ValidationTypeBasicContstraint ValidationType = 5
 
 	// https://tools.ietf.org/html/rfc5280#section-5.1.2.6
-	ValidationTypeRevocationList ValidationType = 6
+	ValidationTypeCRLRevocation ValidationType = 6
+
+	// https://tools.ietf.org/html/rfc5280#section-5.1.2.6
+	ValidationTypeOCSPRevocation ValidationType = 7
 )
 
 var ValidationResultPass = ValidationResult{
@@ -44,6 +52,10 @@ var ValidationResultSkip = ValidationResult{
 var ValidationResultFail = ValidationResult{
 	ResultStr: "FAIL",
 	Success:   false,
+}
+
+var ocspOpts = ocsp.RequestOptions{
+	Hash: crypto.SHA256,
 }
 
 type ValidationResult struct {
@@ -202,6 +214,82 @@ func ValidateCRLRevocation(cert x509.Certificate, crlEndpoints []string) (Valida
 				return failure, nil
 			}
 		}
+	}
+
+	return ValidationResultPass, nil
+}
+
+func sendOCSPRequest(
+	ocspServer string,
+	ocspRequest []byte,
+	issuer *x509.Certificate,
+) (*ocsp.Response, error) {
+
+	request, err := http.NewRequest(http.MethodPost, ocspServer, bytes.NewReader(ocspRequest))
+	if err != nil {
+		return nil, err
+	}
+
+	ocspUrl, err := url.Parse(ocspServer)
+	if err != nil {
+		return nil, err
+	}
+
+	request.Header.Add("Host", ocspUrl.Host)
+	request.Header.Add("Content-Type", "application/ocsp-request")
+	request.Header.Add("Accept", "application/ocsp-response")
+	httpClient := &http.Client{}
+
+	response, err := httpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ocspResponse, err := ocsp.ParseResponse(responseData, issuer)
+	if err != nil {
+		return nil, err
+	}
+
+	return ocspResponse, nil
+}
+
+func ValidateOCSPRevocation(
+	cert *x509.Certificate,
+	issuer *x509.Certificate,
+	ocspServers []string) (ValidationResult, error) {
+
+	// TODO: Validate the full chain, not just n-1 certs of the server cert
+	if issuer == nil {
+		return ValidationResultSkip, nil
+	}
+
+	ocspRequest, err := ocsp.CreateRequest(cert, issuer, &ocspOpts)
+	if err != nil {
+		failure := ValidationResultFail
+		failure.Message = err.Error()
+		return failure, nil
+	}
+
+	for _, ocspServer := range ocspServers {
+		ocspResponse, err := sendOCSPRequest(ocspServer, ocspRequest, issuer)
+		if err != nil {
+			failure := ValidationResultFail
+			failure.Message = err.Error()
+			return failure, nil
+		}
+
+		if ocspResponse.Status != ocsp.Good {
+			failure := ValidationResultFail
+			failure.Message = fmt.Sprintf("CRL: cert '%s' was revoked via OCSP", cert.Subject)
+			return failure, nil
+		}
+
 	}
 
 	return ValidationResultPass, nil

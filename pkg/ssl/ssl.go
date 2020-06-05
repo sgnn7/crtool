@@ -60,6 +60,11 @@ func VerifyServerCertChain(target string, port string, options cli.Options) erro
 		log.Printf("Certificate: %d/%d", idx+1, numOfCerts)
 		log.Println()
 
+		var issuerCert *x509.Certificate
+		if idx < numOfCerts-1 {
+			issuerCert = certs[idx+1]
+		}
+
 		subjValidation, _ := validation.ValidateSubject(cert.Subject)
 		validations = append(validations, subjValidation)
 		log.Printf("%s %-23s '%s'", subjValidation, "Subject:", cert.Subject)
@@ -74,10 +79,6 @@ func VerifyServerCertChain(target string, port string, options cli.Options) erro
 		log.Printf("%s %-23s %s", notAfterValidation, "Validity (NotAfter):",
 			cert.NotAfter.Format(time.RFC3339))
 
-		var issuerCert *x509.Certificate
-		if idx < numOfCerts-1 {
-			issuerCert = certs[idx+1]
-		}
 		issuerValidation, _ := validation.ValidateIssuer(cert, issuerCert)
 		validations = append(validations, issuerValidation)
 		log.Printf("%s %-23s '%s'", issuerValidation, "Issuer:", cert.Issuer)
@@ -87,14 +88,25 @@ func VerifyServerCertChain(target string, port string, options cli.Options) erro
 		log.Printf("%s %-23s %v", basicConstraintValidation, "Basic constraint:",
 			basicConstraintValidation.Success)
 
-		caValidation, _ := validation.ValidateCA(cert.IsCA)
-		validations = append(validations, caValidation)
-		log.Printf("%s %-23s %v", caValidation, "CA Cert:", cert.IsCA)
-
 		crlRevocationsValidation, _ := validation.ValidateCRLRevocation(*cert, cert.CRLDistributionPoints)
 		validations = append(validations, crlRevocationsValidation)
 		log.Printf("%s %-23s %s", crlRevocationsValidation, "CRL Revocations:", cert.CRLDistributionPoints)
-		log.Println()
+
+		// Disabled by default for now - there's a number of issues that can arise from OCSP
+		// failures on the server-side
+		/*
+			ocspRevocationsValidation, _ := validation.ValidateOCSPRevocation(
+				cert,
+				issuerCert,
+				cert.OCSPServer,
+			)
+			validations = append(validations, ocspRevocationsValidation)
+			log.Printf("%s %-23s %s", ocspRevocationsValidation, "OCSP Revocations:", cert.OCSPServer)
+		*/
+
+		caValidation, _ := validation.ValidateCA(cert.IsCA)
+		validations = append(validations, caValidation)
+		log.Printf("%s %-23s %v", caValidation, "CA Cert:", cert.IsCA)
 
 		if idx < numOfCerts-1 {
 			log.Println()
