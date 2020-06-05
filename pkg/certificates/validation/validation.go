@@ -10,11 +10,20 @@ import (
 type ValidationType int
 
 const (
-	ValidationTypeSubject   ValidationType = 0
+	ValidationTypeSubject ValidationType = 0
+
+	// https://tools.ietf.org/html/rfc5280#section-4.1.2.5
 	ValidationTypeNotBefore ValidationType = 1
 	ValidationTypeNotAfter  ValidationType = 2
-	ValidationTypeIssuer    ValidationType = 3
-	ValidationTypeCACert    ValidationType = 4
+
+	// https://tools.ietf.org/html/rfc5280#section-4.1.2.4
+	ValidationTypeIssuer ValidationType = 3
+
+	// This isn't a validation per-se - it's more for visual indication
+	ValidationTypeCACert ValidationType = 4
+
+	// https://tools.ietf.org/html/rfc5280#section-4.2.1.9
+	ValidationTypeBasicContstraint ValidationType = 5
 )
 
 var ValidationResultPass = ValidationResult{
@@ -95,6 +104,17 @@ func ValidateNotAfter(notAfter time.Time) (ValidationResult, error) {
 	if time.Now().After(notAfter) {
 		failure := ValidationResultFail
 		failure.Message = "notAfter: current datetime is after cert validity end time"
+		return failure, nil
+	}
+
+	return ValidationResultPass, nil
+}
+
+func ValidateBasicConstraint(cert x509.Certificate) (ValidationResult, error) {
+	if !cert.BasicConstraintsValid {
+		failure := ValidationResultFail
+		failure.Message = "basicConstraint: cert fails basic constraints" +
+			"(one of `IsCA`, `MaxPathLen`, or `MaxPathLenZero`)"
 		return failure, nil
 	}
 

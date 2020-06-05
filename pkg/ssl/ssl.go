@@ -82,6 +82,11 @@ func VerifyServerCertChain(target string, port string, options cli.Options) erro
 		validations = append(validations, issuerValidation)
 		log.Printf("%s %-23s '%s'", issuerValidation, "Issuer:", cert.Issuer)
 
+		basicConstraintValidation, _ := validation.ValidateBasicConstraint(*cert)
+		validations = append(validations, basicConstraintValidation)
+		log.Printf("%s %-23s %v", basicConstraintValidation, "Basic constraint:",
+			basicConstraintValidation.Success)
+
 		caValidation, _ := validation.ValidateCA(cert.IsCA)
 		validations = append(validations, caValidation)
 		log.Printf("%s %-23s %v", caValidation, "CA Cert:", cert.IsCA)
