@@ -13,7 +13,7 @@ import (
 )
 
 func GetServerCert(target string, port string, encType encoding.EncodingType, options cli.Options) error {
-	certs, _, err := certProviders.GetTLSCertificates(target, port, options.Debug)
+	certs, _, err := certProviders.GetCertificates(target, port, options.Debug)
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func GetServerCert(target string, port string, encType encoding.EncodingType, op
 }
 
 func VerifyServerCertChain(target string, port string, options cli.Options) error {
-	certs, host, err := certProviders.GetTLSCertificates(target, port, options.Debug)
+	certs, host, err := certProviders.GetCertificates(target, port, options.Debug)
 	if err != nil {
 		return err
 	}
